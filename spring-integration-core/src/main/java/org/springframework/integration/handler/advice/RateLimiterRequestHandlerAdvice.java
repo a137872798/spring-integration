@@ -37,11 +37,15 @@ import io.vavr.control.Try;
  * @author Gary Russell
  *
  * @since 5.2
+ * 基于限流模式
  */
 public class RateLimiterRequestHandlerAdvice extends AbstractRequestHandlerAdvice {
 
 	public static final String DEFAULT_NAME = "RateLimiterRequestHandlerAdvice";
 
+	/**
+	 * 限流逻辑本身基于第三方框架实现
+	 */
 	private final RateLimiter rateLimiter;
 
 	/**

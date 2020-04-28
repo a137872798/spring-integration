@@ -74,6 +74,11 @@ public class RoutingSlipHeaderValueMessageProcessor
 		this.beanFactory = beanFactory; //NOSONAR (inconsistent sync)
 	}
 
+	/**
+	 * 接收消息 并生成一组对象 之后会设置到 messageHeader 中
+	 * @param message The message to process.
+	 * @return
+	 */
 	@Override
 	public Map<List<Object>, Integer> processMessage(Message<?> message) {
 		// use a local variable to avoid the second access to volatile field on the happy path

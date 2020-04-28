@@ -37,7 +37,7 @@ import org.springframework.messaging.SubscribableChannel;
  * @author Artem Bilan
  *
  * @since 4.0
- *
+ * 该对象一旦创建就不能修改订阅者
  */
 public final class FixedSubscriberChannel implements SubscribableChannel, BeanNameAware, NamedComponent {
 
@@ -47,6 +47,9 @@ public final class FixedSubscriberChannel implements SubscribableChannel, BeanNa
 
 	private String beanName;
 
+	/**
+	 * 该对象在初始化时 必须指定handler
+	 */
 	public FixedSubscriberChannel() {
 		throw new IllegalArgumentException("Cannot instantiate a " + this.getClass().getSimpleName()
 				+ " without a MessageHandler.");

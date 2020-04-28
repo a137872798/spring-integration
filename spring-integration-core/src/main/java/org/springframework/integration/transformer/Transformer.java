@@ -22,6 +22,7 @@ import org.springframework.messaging.Message;
  * Strategy interface for transforming a {@link Message}.
  *
  * @author Mark Fisher
+ * 转换器接口   将消息A 转换成 消息B
  */
 @FunctionalInterface
 public interface Transformer extends GenericTransformer<Message<?>, Message<?>> {

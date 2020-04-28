@@ -135,6 +135,9 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 
 	private Object serviceProxy;
 
+	/**
+	 * 默认的工作线程池 可以在外部进行覆盖
+	 */
 	private AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
 
 	private Class<?> asyncSubmitType;
@@ -393,6 +396,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 			this.serviceProxy =
 					new ProxyFactory(this.serviceInterface, this)
 							.getProxy(this.beanClassLoader);
+			// 如果支持异步网关模式
 			if (this.asyncExecutor != null) {
 				Callable<String> task = () -> null;
 				Future<String> submitType = this.asyncExecutor.submit(task);
@@ -429,8 +433,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint
 		if (gateway != null) {
 			returnType = gateway.returnType;
 		}
+		// 当 asyncExecutor 被置空时 采取同步执行策略
 		if (this.asyncExecutor != null && !Object.class.equals(returnType)) {
 			Invoker invoker = new Invoker(invocation);
+			// 异步执行网关方法
 			if (returnType.isAssignableFrom(this.asyncSubmitType)) {
 				return this.asyncExecutor.submit(invoker::get);
 			}

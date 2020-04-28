@@ -32,11 +32,15 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Nick Spacek
  * @since 2.0
+ * 与 ClaimCheckInTransformer 成对 通过id从messageStore中读取payload
  */
 public class ClaimCheckOutTransformer extends AbstractTransformer {
 
 	private final MessageStore messageStore;
 
+	/**
+	 * 代表在获取数据同时 从messageStore中移除
+	 */
 	private volatile boolean removeMessage = false;
 
 
@@ -77,7 +81,7 @@ public class ClaimCheckOutTransformer extends AbstractTransformer {
 		Assert.notNull(retrievedMessage, "unable to locate Message for ID: " + id
 				+ " within MessageStore [" + this.messageStore + "]");
 		AbstractIntegrationMessageBuilder<?> responseBuilder = this.getMessageBuilderFactory().fromMessage(retrievedMessage);
-		// headers on the 'current' message take precedence
+		// headers on the 'current' message take precedence   通过反复的MessageBuilder 进行数据拷贝实际上多了很多额外的开销  好处就是每个环节的处理不会被其他环节影响
 		responseBuilder.copyHeaders(message.getHeaders());
 		return responseBuilder.build();
 	}

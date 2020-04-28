@@ -24,7 +24,7 @@ import org.springframework.messaging.Message;
  *
  * @author Gary Russell
  * @since 4.0
- *
+ * 基于group存储数据
  */
 public interface BasicMessageGroupStore {
 

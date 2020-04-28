@@ -43,6 +43,7 @@ import org.springframework.util.ErrorHandler;
  * @author Gary Russell
  * @author Artem Bilan
  * @since 1.0.3
+ * 该channel 会将处理逻辑交给内部的线程池  也就是一个异步处理
  */
 public class ExecutorChannel extends AbstractExecutorChannel {
 
@@ -72,6 +73,7 @@ public class ExecutorChannel extends AbstractExecutorChannel {
 	public ExecutorChannel(Executor executor, LoadBalancingStrategy loadBalancingStrategy) {
 		super(executor);
 		Assert.notNull(executor, "executor must not be null");
+		// 该分发器内部包含线程池
 		UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher(executor);
 		if (loadBalancingStrategy != null) {
 			this.loadBalancingStrategy = loadBalancingStrategy;
@@ -91,6 +93,10 @@ public class ExecutorChannel extends AbstractExecutorChannel {
 		getDispatcher().setFailover(failover);
 	}
 
+	/**
+	 * 返回的是一个特殊的分发器
+	 * @return
+	 */
 	@Override
 	protected UnicastingDispatcher getDispatcher() {
 		return (UnicastingDispatcher) this.dispatcher;

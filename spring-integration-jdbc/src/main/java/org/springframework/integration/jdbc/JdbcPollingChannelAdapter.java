@@ -51,6 +51,8 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  *
  * @since 2.0
+ * 从 dataSource 定期拉取数据 的 messageSource
+ * 不可能每次都查询大量的数据 然后自己识别哪些是新插入的  同时 如果设置额外的字段标注是否已经被拉取过 对于表结构的侵入性太强
  */
 public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 
@@ -66,17 +68,23 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 
 	private boolean sqlParameterSourceFactorySet;
 
+	/**
+	 * 每次查询最大拉取长度
+	 */
 	private int maxRows = 0;
 
 	private volatile String selectQuery;
 
+	/**
+	 * 当查询到结果后 可以配合这个语句进行更新
+	 */
 	private volatile String updateSql;
 
 	/**
 	 * Constructor taking {@link DataSource} from which the DB Connection can be
 	 * obtained and the select query to execute to retrieve new rows.
-	 * @param dataSource Must not be null
-	 * @param selectQuery query to execute
+	 * @param dataSource Must not be null     数据源参数
+	 * @param selectQuery query to execute    用于查询目标数据的sql
 	 */
 	public JdbcPollingChannelAdapter(DataSource dataSource, String selectQuery) {
 		this(new JdbcTemplate(dataSource), selectQuery);
@@ -186,9 +194,11 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 	 * Execute the select query and the update query if provided. Returns the
 	 * rows returned by the select query. If a RowMapper has been provided, the
 	 * mapped results are returned.
+	 * 从该messageSource 中拉取 message
 	 */
 	@Override
 	protected Object doReceive() {
+		// 这里已经查询到结果了
 		List<?> payload = doPoll(this.sqlQueryParameterSource);
 		if (payload.size() < 1) {
 			payload = null;
@@ -211,6 +221,7 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 			return this.jdbcOperations.query(this.selectQuery, sqlQueryParameterSource, this.rowMapper);
 		}
 		else {
+			// 通过 JDBCTemplate 查询结果 并使用rowMapper做映射
 			return this.jdbcOperations.query(this.selectQuery, this.rowMapper);
 		}
 	}

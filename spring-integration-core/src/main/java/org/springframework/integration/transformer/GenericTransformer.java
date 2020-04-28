@@ -24,6 +24,7 @@ package org.springframework.integration.transformer;
  *
  * @author Artem Bilan
  * @since 4.0
+ * 泛化的转换器
  */
 @FunctionalInterface
 public interface GenericTransformer<S, T> {

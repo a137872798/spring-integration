@@ -266,6 +266,10 @@ public class NullChannel implements PollableChannel,
 		return this.successTimer;
 	}
 
+	/**
+	 * 当 nullChannel 接收到消息时不做任何处理
+	 * @return
+	 */
 	@Override
 	public Message<?> receive() {
 		if (this.loggingEnabled) {
@@ -280,6 +284,9 @@ public class NullChannel implements PollableChannel,
 		return receive();
 	}
 
+	/**
+	 * 统计当前channel 接收到的消息总数
+	 */
 	private void incrementReceiveCounter() {
 		if (this.metricsCaptor != null) {
 			if (this.receiveCounter == null) {

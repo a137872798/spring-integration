@@ -195,6 +195,7 @@ class DefaultConfiguringBeanFactoryPostProcessor
 						+ "' is reserved.");
 			}
 		}
+		// 默认情况下 框架会自动填充一个 nullChannel
 		else {
 			this.registry.registerBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME,
 					new RootBeanDefinition(NullChannel.class));

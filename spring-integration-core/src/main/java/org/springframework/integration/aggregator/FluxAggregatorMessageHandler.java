@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2019-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import reactor.core.publisher.Mono;
  * @author Artem Bilan
  *
  * @since 5.2
+ * 基于 Flux.window 发送消息   window() 是设置一个窗口大小 每次最上游发送满足一个窗口大小的数据时 下游通过订阅中间层 接收中间层下发的数据  (总计3层 负责判断是否填充满窗口是在中间层完成的)
  */
 public class FluxAggregatorMessageHandler extends AbstractMessageProducingHandler implements Lifecycle {
 

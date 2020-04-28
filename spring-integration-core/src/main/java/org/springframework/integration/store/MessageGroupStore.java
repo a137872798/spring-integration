@@ -32,7 +32,7 @@ import org.springframework.messaging.Message;
  * @author Artem Bilan
  *
  * @since 2.0
- *
+ * 基于组的存储对象
  */
 public interface MessageGroupStore extends BasicMessageGroupStore {
 

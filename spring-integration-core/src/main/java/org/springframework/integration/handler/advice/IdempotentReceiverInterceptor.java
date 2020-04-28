@@ -51,6 +51,7 @@ import org.springframework.util.Assert;
  *
  * @see org.springframework.integration.selector.MetadataStoreSelector
  * @see org.springframework.integration.config.IdempotentReceiverAutoProxyCreatorInitializer
+ * 实现幂等
  */
 public class IdempotentReceiverInterceptor extends AbstractHandleMessageAdvice {
 

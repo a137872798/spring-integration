@@ -21,6 +21,7 @@ package org.springframework.integration.metadata;
  *
  * @author Marius Bogoevici
  * @since 4.2
+ * 当某些元数据发生变更时 监听并触发对应方法
  */
 public interface MetadataStoreListener {
 

@@ -23,6 +23,7 @@ package org.springframework.integration.metadata;
  *
  * @author Marius Bogoevici
  * @since 4.2
+ * 该接口代表可以监听元数据的变化   并在相应的方法通知监听器
  */
 public interface ListenableMetadataStore extends ConcurrentMetadataStore {
 

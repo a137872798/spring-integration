@@ -28,6 +28,7 @@ import org.springframework.messaging.Message;
  * @author Gary Russell
  *
  * @since 5.0
+ * 实际上提供了一堆建造器 只是方法名更贴近实际
  */
 public final class MessageChannels {
 

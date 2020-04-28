@@ -44,6 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  *
  * @since 5.0
+ * 在 spring-integration 中有很多类都是动态生成的  根据 xml配置 又或者使用@相关的注解 包装用户定义的方法 生成integration内部的组件
  */
 public class AnnotationGatewayProxyFactoryBean extends GatewayProxyFactoryBean {
 

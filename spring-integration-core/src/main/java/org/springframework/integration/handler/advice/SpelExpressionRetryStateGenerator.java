@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  * Creates a DefaultRetryState from a {@link Message}.
  * @author Gary Russell
  * @since 2.2
- *
+ * 框架内置的 重试状态生成器
  */
 public class SpelExpressionRetryStateGenerator implements RetryStateGenerator, BeanFactoryAware {
 
@@ -70,6 +70,11 @@ public class SpelExpressionRetryStateGenerator implements RetryStateGenerator, B
 		this.classifier = classifier;
 	}
 
+	/**
+	 * 根据消息对象 获取该消息当前重试状态
+	 * @param message
+	 * @return
+	 */
 	@Override
 	public RetryState determineRetryState(Message<?> message) {
 		Boolean forceRefresh = this.forceRefreshExpression == null

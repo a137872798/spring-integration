@@ -22,6 +22,7 @@ import org.springframework.messaging.Message;
  * Strategy interface for message selection.
  *
  * @author Mark Fisher
+ * 决定是否接收某个消息的选择器
  */
 @FunctionalInterface
 public interface MessageSelector extends GenericSelector<Message<?>> {

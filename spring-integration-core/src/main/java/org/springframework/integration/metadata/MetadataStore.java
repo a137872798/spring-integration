@@ -28,6 +28,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  * @author Mark Fisher
  * @author Gary Russell
  * @since 2.0
+ * 元数据存储
  */
 @ManagedResource
 public interface MetadataStore {

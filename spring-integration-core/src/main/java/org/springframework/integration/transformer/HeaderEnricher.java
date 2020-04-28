@@ -40,6 +40,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author David Turanski
  * @author Artem Bilan
  * @author Gary Russell
+ * 消息头增强器  原来这些 enricher 都是实现 Transformer接口
  */
 public class HeaderEnricher extends IntegrationObjectSupport implements Transformer {
 
@@ -92,6 +93,11 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 		return "header-enricher";
 	}
 
+	/**
+	 * 将 MessageA 转换成 MessageB
+	 * @param message
+	 * @return
+	 */
 	@Override
 	public Message<?> transform(Message<?> message) {
 		MessageHeaders messageHeaders = message.getHeaders();
@@ -101,6 +107,7 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 						.fromMessage(message);
 
 		addHeadersFromMessageProcessor(message, messageBuilder);
+		// 在headerEnricher 中 可以追加一些额外的功能 比如 RoutingSlipHeader
 		for (Map.Entry<String, ? extends HeaderValueMessageProcessor<?>> entry : this.headersToAdd.entrySet()) {
 			String key = entry.getKey();
 			HeaderValueMessageProcessor<?> valueProcessor = entry.getValue();
@@ -110,6 +117,7 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 				shouldOverwrite = this.defaultOverwrite;
 			}
 
+			// 只有请求头不包含某些字段的时候(或者需要被覆盖) 才set对应属性
 			boolean headerDoesNotExist = messageHeaders.get(key) == null;
 
 			/*
@@ -126,6 +134,11 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 		return messageBuilder.build();
 	}
 
+	/**
+	 * messageProcessor 通过处理传入的message 生成一个 map (该对象内部包含了新建的 messageHeader)
+	 * @param message
+	 * @param messageBuilder
+	 */
 	private void addHeadersFromMessageProcessor(Message<?> message,
 			AbstractIntegrationMessageBuilder<?> messageBuilder) {
 
@@ -137,6 +150,7 @@ public class HeaderEnricher extends IntegrationObjectSupport implements Transfor
 				for (Entry<?, ?> entry : resultMap.entrySet()) {
 					Object key = entry.getKey();
 					if (key instanceof String) {
+						// 将生成的数据填充到builder中
 						if (this.defaultOverwrite || messageHeaders.get(key) == null) {
 							messageBuilder.setHeader((String) key, entry.getValue());
 						}

@@ -36,6 +36,7 @@ public interface HeaderChannelRegistry {
 	 * {@link MessageChannel}, it is returned unchanged.
 	 * @param channel The channel.
 	 * @return The channel name, or the channel if it is not a MessageChannel.
+	 * 根据 channel 获取channelName
 	 */
 	Object channelToChannelName(Object channel);
 

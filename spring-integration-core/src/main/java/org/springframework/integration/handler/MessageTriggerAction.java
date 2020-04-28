@@ -24,7 +24,7 @@ import org.springframework.messaging.Message;
  *
  * @author Gary Russell
  * @since 4.2
- *
+ * 触发器 代表在执行某些动作时触发
  */
 @FunctionalInterface
 public interface MessageTriggerAction {

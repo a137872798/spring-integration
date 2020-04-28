@@ -33,7 +33,7 @@ import org.springframework.util.FileCopyUtils;
  *
  * @author Gary Russell
  * @since 4.3
- *
+ * 将message 转换成 IO.Stream
  */
 public class StreamTransformer extends AbstractTransformer {
 

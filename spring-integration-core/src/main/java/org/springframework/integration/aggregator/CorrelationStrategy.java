@@ -24,6 +24,7 @@ import org.springframework.messaging.Message;
  *
  * @author Marius Bogoevici
  * @author Iwein Fuld
+ * 聚合策略  从消息中抽取能够作为分组条件的数据   比如消息头的 correlationId
  */
 @FunctionalInterface
 public interface CorrelationStrategy {

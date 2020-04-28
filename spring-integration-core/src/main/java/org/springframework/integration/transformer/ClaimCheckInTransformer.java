@@ -29,9 +29,13 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @since 2.0
+ * 该对象可以在message传输的时候 临时性的存储payload 并在恰当的时候重新读取payload  针对数据流比较大的情况
  */
 public class ClaimCheckInTransformer extends AbstractTransformer {
 
+	/**
+	 * 该对象负责存储相关数据
+	 */
 	private final MessageStore messageStore;
 
 
@@ -56,6 +60,7 @@ public class ClaimCheckInTransformer extends AbstractTransformer {
 		UUID id = message.getHeaders().getId();
 		Assert.notNull(id, "ID header must not be null");
 		this.messageStore.addMessage(message);
+		// 将内部的消息负载仅仅转换成一个 id  之后在合适的时机 通过id 去store中获取数据
 		AbstractIntegrationMessageBuilder<?> responseBuilder = getMessageBuilderFactory().withPayload(id);
 		// headers on the 'current' message take precedence
 		responseBuilder.copyHeaders(message.getHeaders());

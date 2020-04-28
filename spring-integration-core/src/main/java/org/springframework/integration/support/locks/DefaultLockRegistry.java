@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @since 2.1.1
- *
+ * 尝试获取锁的对象会通过hash算法映射到某个对象锁  也就是能够确保相同唯一键的对象总能对应同一把锁
  */
 public final class DefaultLockRegistry implements LockRegistry {
 

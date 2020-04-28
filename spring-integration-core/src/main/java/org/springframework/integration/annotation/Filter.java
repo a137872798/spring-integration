@@ -39,6 +39,7 @@ import java.lang.annotation.Target;
  * @author Gary Russell
  * @author Artem Bilan
  * @since 2.0
+ * 由该注解修饰的方法 可以作为一个MessageFilter  它用于判断某个消息能否正确的传递下去 如果设置了 throwExceptionOnRejection 那么当消息被拒绝时会抛出异常
  */
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
@@ -64,6 +65,7 @@ public @interface Filter {
 	 * Specify the channel to which this filter will send messages that do no pass the
 	 * selector.
 	 * @return The channel name.
+	 * 当某个消息被拒绝时 会尝试传入到该channel
 	 */
 	String discardChannel() default "";
 

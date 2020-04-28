@@ -48,12 +48,16 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  *
  * @since 4.2
+ * 该对象具备线程阻塞功能   比如在下游接收消息开启一个异步线程 同时消息线程被阻塞  直到下游线程完成任务后返回 此时解除阻塞
  */
 public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 		implements MessageTriggerAction, DiscardingMessageHandler {
 
 	private final Map<Object, SynchronousQueue<Message<?>>> suspensions = new ConcurrentHashMap<>();
 
+	/**
+	 * 维护当前正在处理中的线程
+	 */
 	private final Map<Object, Thread> inProcess = new ConcurrentHashMap<>();
 
 	private final long timeout;
@@ -149,12 +153,18 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 		return "barrier";
 	}
 
+	/**
+	 * 处理消息会被转发到该方法
+	 * @param requestMessage The request message.
+	 * @return
+	 */
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		Object key = this.correlationStrategy.getCorrelationKey(requestMessage);
 		if (key == null) {
 			throw new MessagingException(requestMessage, "Correlation Strategy returned null");
 		}
+		// 如果该key 已经被认为是阻塞了 抛出异常 照理说不会出现这种情况 因为 线程在添加到 inProcess时 应该被阻塞了
 		Thread existing = this.inProcess.putIfAbsent(key, Thread.currentThread());
 		if (existing != null) {
 			throw new MessagingException(requestMessage, "Correlation key ("
@@ -162,6 +172,7 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 		}
 		SynchronousQueue<Message<?>> syncQueue = createOrObtainQueue(key);
 		try {
+			// 阻塞当前线程 直到另一个线程触发 trigger() 
 			Message<?> releaseMessage = syncQueue.poll(this.timeout, TimeUnit.MILLISECONDS);
 			if (releaseMessage != null) {
 				return processRelease(key, requestMessage, releaseMessage);
@@ -214,12 +225,18 @@ public class BarrierMessageHandler extends AbstractReplyProducingMessageHandler
 		return syncQueue;
 	}
 
+	/**
+	 * 在特定的时机触发
+	 * @param message the message.
+	 */
 	@Override
 	public void trigger(Message<?> message) {
+		// 找到用于关联批消息的key
 		Object key = this.correlationStrategy.getCorrelationKey(message);
 		if (key == null) {
 			throw new MessagingException(message, "Correlation Strategy returned null");
 		}
+		// 这个是juc的同步器 分为进和出2个动作  某个动作被触发时 必须阻塞到另一个动作触发
 		SynchronousQueue<Message<?>> syncQueue = createOrObtainQueue(key);
 		try {
 			if (!syncQueue.offer(message, this.timeout, TimeUnit.MILLISECONDS)) {

@@ -33,6 +33,7 @@ import org.springframework.messaging.Message;
  * @author Gary Russell
  *
  * @since 2.1
+ * 用于处理聚合消息
  */
 public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler {
 

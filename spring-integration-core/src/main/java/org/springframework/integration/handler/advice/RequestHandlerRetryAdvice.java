@@ -38,17 +38,21 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author Artem Bilan
  * @since 2.2
+ * 这是框架内置的 重试增强器
  */
 public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 		implements RetryListener {
 
 	private RetryTemplate retryTemplate = new RetryTemplate();
 
+	/**
+	 * 超过重试上限时 尝试使用该对象进行恢复  详见 RetryTemplate
+	 */
 	private RecoveryCallback<Object> recoveryCallback;
 
 	private static final ThreadLocal<Message<?>> messageHolder = new ThreadLocal<Message<?>>();
 
-	// Stateless unless a state generator is provided
+	// Stateless unless a state generator is provided   该对象用于维护 每次重试时该对象的状态  默认情况下返回null 就代表每次重试都是无状态的
 	private volatile RetryStateGenerator retryStateGenerator = message -> null;
 
 	/**
@@ -76,13 +80,23 @@ public class RequestHandlerRetryAdvice extends AbstractRequestHandlerAdvice
 		this.retryTemplate.registerListener(this);
 	}
 
+	/**
+	 * 这里实现了重试逻辑
+	 * @param callback Subclasses invoke the execute() method on this interface to invoke the handler method.   实际上就是调用目标类的处理方法
+	 * @param target   The target handler.    处理器对象本身
+	 * @param message  The message that will be sent to the handler.   会被处理的消息对象
+	 * @return
+	 */
 	@Override
 	protected Object doInvoke(final ExecutionCallback callback, Object target, final Message<?> message) {
 		RetryState retryState = null;
+		// 获取该消息当前的重试状态信息  默认情况下返回null
 		retryState = this.retryStateGenerator.determineRetryState(message);
+		// 为当前线程绑定message
 		messageHolder.set(message);
 
 		try {
+			// 使用重试模板来执行方法 (为正常执行增加重试功能)
 			return this.retryTemplate.execute(context -> callback.cloneAndExecute(), this.recoveryCallback, retryState);
 		}
 		catch (MessagingException e) {

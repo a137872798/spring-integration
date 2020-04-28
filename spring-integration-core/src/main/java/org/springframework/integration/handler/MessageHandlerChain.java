@@ -62,12 +62,16 @@ import org.springframework.util.Assert;
  * @author Iwein Fuld
  * @author Gary Russell
  * @author Artem Bilan
+ * 该处理链本身实现了 MessageHandler  当接收到某个消息时 使用内部所有的handler 处理消息
  */
 public class MessageHandlerChain extends AbstractMessageProducingHandler
 		implements CompositeMessageHandler, Lifecycle {
 
 	private volatile List<MessageHandler> handlers;
 
+	/**
+	 * spring-integration 内部很多组件都包含生命周期相关的方法 该属性用于标识当前是否完成初始化
+	 */
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
@@ -102,11 +106,16 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 		}
 	}
 
+	/**
+	 * 在 AbstractMessageHandler 会将 handleMessage() 转发到这里
+	 * @param message
+	 */
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		if (!this.initialized) {
 			this.onInit();
 		}
+		// 默认情况下通过第一个handler来处理消息   看来需要在 handler内部转发到 nextMessageHandler.handleMessage()
 		this.handlers.get(0).handleMessage(message);
 	}
 
@@ -165,6 +174,8 @@ public class MessageHandlerChain extends AbstractMessageProducingHandler
 			this.lifecycleLock.unlock();
 		}
 	}
+
+	// 这个套路有点像 tomcat
 
 	@Override
 	public final void start() {

@@ -156,6 +156,7 @@ public class ErrorMessagePublisher implements BeanFactoryAware {
 	 * to publish.
 	 * @param throwable the throwable. May be null.
 	 * @param context the context for {@link ErrorMessage} properties.
+	 *                这里传播了一个异常信息
 	 */
 	public void publish(Throwable throwable, AttributeAccessor context) {
 		populateChannel();

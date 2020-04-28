@@ -55,6 +55,9 @@ public class WhiteListDeserializingConverter implements Converter<byte[], Object
 
 	private final boolean usingDefaultDeserializer;
 
+	/**
+	 * 包含一组白名单 避免将未知来源的数据反序列化导致出错
+	 */
 	private final Set<String> whiteListPatterns = new LinkedHashSet<String>();
 
 

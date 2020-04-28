@@ -45,7 +45,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  *
  * @since 3.0
- *
+ * 一个全局性的注册工厂
  */
 public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		implements HeaderChannelRegistry, Lifecycle, Runnable {
@@ -60,6 +60,9 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 
 	private boolean removeOnGet;
 
+	/**
+	 * 清理任务执行的时间间隔
+	 */
 	private long reaperDelay;
 
 	private volatile ScheduledFuture<?> reaperScheduledFuture;
@@ -118,10 +121,14 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		Assert.notNull(getTaskScheduler(), "a task scheduler is required");
 	}
 
+	/**
+	 * 当启动注册工厂的时候 同时开启定时器
+	 */
 	@Override
 	public synchronized void start() {
 		if (!this.running) {
 			Assert.notNull(getTaskScheduler(), "a task scheduler is required");
+			// 每经过多少时间 清理当前map中维护的所有channel
 			this.reaperScheduledFuture =
 					getTaskScheduler()
 							.schedule(this, new Date(System.currentTimeMillis() + this.reaperDelay));
@@ -181,6 +188,7 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 	public MessageChannel channelNameToChannel(@Nullable String name) {
 		if (name != null) {
 			MessageChannelWrapper messageChannelWrapper;
+			// 该标识代表在首次获取时就移除 这样就减少了 通过定时器进行删除的开销  也就是针对大量的数据环境下比较有效
 			if (this.removeOnGet) {
 				messageChannelWrapper = this.channels.remove(name);
 			}
@@ -209,6 +217,9 @@ public class DefaultHeaderChannelRegistry extends IntegrationObjectSupport
 		run();
 	}
 
+	/**
+	 * 该后台任务会定期删除内部注册的channel (避免内存泄露)
+	 */
 	@Override
 	public synchronized void run() {
 		if (logger.isTraceEnabled()) {

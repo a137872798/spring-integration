@@ -20,6 +20,7 @@ package org.springframework.integration.metadata;
  * Base implementation for a {@link MetadataStoreListener}. Subclasses may override any of the methods.
  *
  * @author Marius Bogoevici
+ * 子类只需要根据需要重写对应方法即可
  */
 public abstract class MetadataStoreListenerAdapter implements MetadataStoreListener {
 

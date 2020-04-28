@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @author Andrew Cowlin
  * @author Gary Russell
  * @since 1.0.1
+ * 框架内置的转换器 通过调用 toString 方法 转换message.payload
  */
 public class ObjectToStringTransformer extends AbstractPayloadTransformer<Object, String> {
 

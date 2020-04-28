@@ -247,8 +247,10 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		Assert.notNull(messageChannel, "'messageChannel' must not be null");
 		setImplicitChannel(false);
 		if (getCurrentMessageChannel() != null) {
+			// 将跟channel 与之前设置的channel 桥接起来
 			bridge();
 		}
+		// 更新当前channel
 		currentMessageChannel(messageChannel);
 		return registerOutputChannelIfCan(messageChannel);
 	}

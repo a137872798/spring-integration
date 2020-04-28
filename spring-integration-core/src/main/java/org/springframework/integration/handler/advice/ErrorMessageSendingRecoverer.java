@@ -37,7 +37,8 @@ import org.springframework.retry.RetryContext;
  * @author Oleg Zhurakousky
  *
  * @since 2.2
- *
+ * RecoveryCallback 是当出现异常时尝试恢复的接口
+ * 这是框架内置类   recover 逻辑就是将异常包装成一个message 对象 并发送到某个 errorChannel
  */
 public class ErrorMessageSendingRecoverer extends ErrorMessagePublisher implements RecoveryCallback<Object> {
 

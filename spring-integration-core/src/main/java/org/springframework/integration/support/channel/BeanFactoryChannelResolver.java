@@ -82,6 +82,11 @@ public class BeanFactoryChannelResolver implements DestinationResolver<MessageCh
 		this.beanFactory = beanFactory;
 	}
 
+	/**
+	 * 根据某个BeanName 从 beanFactory中获取对应的bean对象
+	 * @param name
+	 * @return
+	 */
 	@Override
 	public MessageChannel resolveDestination(String name) {
 		Assert.state(this.beanFactory != null, "BeanFactory is required");

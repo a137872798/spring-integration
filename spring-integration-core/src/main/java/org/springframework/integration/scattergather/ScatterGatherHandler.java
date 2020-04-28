@@ -51,19 +51,32 @@ import org.springframework.util.ClassUtils;
  * @author Jayadev Sirimamilla
  *
  * @since 4.1
+ * 这些messageHandler 可以看作 framework 内置的handler 拓展自身逻辑 而针对业务的messageHandler需要由用户自己定义
  */
 public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
 
 	private static final String GATHER_RESULT_CHANNEL = "gatherResultChannel";
 
+	/**
+	 * 全局范围的异常处理通道
+	 */
 	private static final String ORIGINAL_ERROR_CHANNEL = "originalErrorChannel";
 
+	/**
+	 * 这个通道专门用于拆分数据
+	 */
 	private final MessageChannel scatterChannel;
 
 	private final MessageHandler gatherer;
 
+	/**
+	 * 当拆分结束后将消息回传到这里
+	 */
 	private MessageChannel gatherChannel;
 
+	/**
+	 * 异常处理通道的 beanName
+	 */
 	private String errorChannelName = IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME;
 
 	private long gatherTimeout = -1;
@@ -170,9 +183,15 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 				.build();
 	}
 
+	/**
+	 * 处理从上游接收到的数据
+	 * @param requestMessage The request message.
+	 * @return
+	 */
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		MessageHeaders requestMessageHeaders = requestMessage.getHeaders();
+		// 生成存储式 channel
 		PollableChannel gatherResultChannel = new QueueChannel();
 
 		Message<?> scatterMessage =
@@ -184,6 +203,7 @@ public class ScatterGatherHandler extends AbstractReplyProducingMessageHandler i
 						.setErrorChannelName(this.errorChannelName)
 						.build();
 
+		// 将消息包装后转发到一个 scatterChannel
 		this.messagingTemplate.send(this.scatterChannel, scatterMessage);
 
 		Message<?> gatherResult = gatherResultChannel.receive(this.gatherTimeout);

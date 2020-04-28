@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  * @since 5.0
  *
  * @see org.springframework.integration.dsl.context.IntegrationFlowBeanPostProcessor
+ * 该对象作为一个工厂 使得可以以DSL方式配置 spring-integration 组件
  */
 public final class IntegrationFlows {
 
@@ -223,6 +224,7 @@ public final class IntegrationFlows {
 	 * @return new {@link IntegrationFlowBuilder}.
 	 * @see MessageSource
 	 * @see SourcePollingChannelAdapterSpec
+	 * 看来这个方法比较常用  即定义了数据的来源 又定义了数据的消费逻辑
 	 */
 	public static IntegrationFlowBuilder from(MessageSource<?> messageSource,
 			@Nullable Consumer<SourcePollingChannelAdapterSpec> endpointConfigurer) {

@@ -37,8 +37,8 @@ import org.springframework.util.Assert;
  * @author Dave Syer
  * @author Gary Russell
  * @author Artem Bilan
- *
  * @since 2.0
+ * 消息组对象
  */
 public class SimpleMessageGroup implements MessageGroup {
 
@@ -70,12 +70,22 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
-			boolean complete) {
+							  boolean complete) {
 		this(new LinkedHashSet<>(), messages, groupId, timestamp, complete, false);
 	}
 
+	/**
+	 * 按照特定存储方式创建某个消息组
+	 *
+	 * @param internalStore  使用的存储容器
+	 * @param messages       当前内部维护的消息数量
+	 * @param groupId        用于标记该组的id
+	 * @param timestamp
+	 * @param complete
+	 * @param storePreLoaded
+	 */
 	public SimpleMessageGroup(Collection<Message<?>> internalStore, Collection<? extends Message<?>> messages,
-			Object groupId, long timestamp, boolean complete, boolean storePreLoaded) {
+							  Object groupId, long timestamp, boolean complete, boolean storePreLoaded) {
 
 		Assert.notNull(internalStore, "'internalStore' must not be null");
 		this.messages = internalStore;
@@ -189,6 +199,7 @@ public class SimpleMessageGroup implements MessageGroup {
 	/**
 	 * Return true if a message with this sequence number header exists in
 	 * the group.
+	 *
 	 * @param sequence the sequence number.
 	 * @return true if it exists.
 	 * @since 4.3.7

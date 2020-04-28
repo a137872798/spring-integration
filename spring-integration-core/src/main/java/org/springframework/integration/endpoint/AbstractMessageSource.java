@@ -164,6 +164,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	@Override
 	public final Message<T> receive() {
 		try {
+			// 下层只负责查询数据  需要通过buildMessage 完成 DO 到message 的转换
 			return buildMessage(doReceive());
 		}
 		catch (RuntimeException ex) {
@@ -199,6 +200,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 			}
 		}
 		else {
+			// 默认情况下创建一个message 并将查询结果作为payload填充到message中
 			message =
 					getMessageBuilderFactory()
 							.withPayload(result)

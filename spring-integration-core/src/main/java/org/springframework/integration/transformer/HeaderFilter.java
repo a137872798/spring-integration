@@ -35,9 +35,13 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  *
  * @since 2.0
+ * 消息头过滤器  首先实现了 Transformer 接口 用于移除message 中某些特定的消息头
  */
 public class HeaderFilter extends IntegrationObjectSupport implements Transformer {
 
+	/**
+	 * 预备被移除的消息头
+	 */
 	private final String[] headersToRemove;
 
 	private volatile boolean patternMatch = true;

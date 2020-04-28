@@ -41,6 +41,12 @@ import org.springframework.messaging.MessagingException;
 public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupport
 		implements MethodInterceptor {
 
+	/**
+	 * 这是一个调用模板 而子类可以通过重写 doInvoke 进行增强
+	 * @param invocation
+	 * @return
+	 * @throws Throwable
+	 */
 	@Override
 	public final Object invoke(final MethodInvocation invocation) throws Throwable {
 
@@ -59,9 +65,11 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 						" can only be used for MessageHandlers; an attempt to advise method '" + method.getName() +
 						"' in '" + clazzName + "' is ignored");
 			}
+			// 其余方法正常执行
 			return invocation.proceed();
 		}
 		else {
+			// 对应处理消息的方法
 			Message<?> message = (Message<?>) arguments[0];
 			try {
 				return doInvoke(new CallbackImpl(invocation), invocationThis, message);
@@ -137,6 +145,9 @@ public abstract class AbstractRequestHandlerAdvice extends IntegrationObjectSupp
 
 	}
 
+	/**
+	 * 通过该对象包装方法的执行逻辑 由子类来决定什么时候调用
+	 */
 	private static final class CallbackImpl implements ExecutionCallback {
 
 		private final MethodInvocation invocation;

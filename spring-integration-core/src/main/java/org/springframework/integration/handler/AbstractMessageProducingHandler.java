@@ -424,13 +424,15 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * Send an output Message. The 'replyChannel' will be considered only if this handler's
 	 * 'outputChannel' is <code>null</code>. In that case, the 'replyChannel' value must not also be
 	 * <code>null</code>, and it must be an instance of either String or {@link MessageChannel}.
-	 * @param output the output object to send
-	 * @param replyChannelArg the 'replyChannel' value from the original request
-	 * @param useArgChannel - use the replyChannel argument (must not be null), not
+	 * @param output the output object to send                                     需要被发送的消息
+	 * @param replyChannelArg the 'replyChannel' value from the original request    目标通道
+	 * @param useArgChannel - use the replyChannel argument (must not be null), not    是否要使用目标通道 而不是用一开始设置的 outputChannel
 	 * the configured output channel.
+	 *                      将消息发送到对应通道
 	 */
 	protected void sendOutput(Object output, @Nullable Object replyChannelArg, boolean useArgChannel) {
 		Object replyChannel = replyChannelArg;
+		// 先获取默认的响应通道
 		MessageChannel outChannel = getOutputChannel();
 		if (!useArgChannel && outChannel != null) {
 			replyChannel = outChannel;
@@ -441,9 +443,11 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 		if (replyChannel instanceof MessageChannel) {
 			if (output instanceof Message<?>) {
+				// 如果要传输的数据本身就是message类型 直接传输
 				this.messagingTemplate.send((MessageChannel) replyChannel, (Message<?>) output);
 			}
 			else {
+				// 其余类型要先进行转换  (也就是生成某个message 并且将该参数作为 payload)
 				this.messagingTemplate.convertAndSend((MessageChannel) replyChannel, output);
 			}
 		}
@@ -468,10 +472,17 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return true;
 	}
 
+	/**
+	 * 当处理消息出现异常时
+	 * @param requestMessage
+	 * @param ex
+	 */
 	protected void sendErrorMessage(Message<?> requestMessage, Throwable ex) {
+		// 先从消息源 header中获取对应的异常处理通道
 		Object errorChannel = resolveErrorChannel(requestMessage.getHeaders());
 		Throwable result = ex;
 		if (!(ex instanceof MessagingException)) {
+			// 包装成 MessagingException
 			result = new MessageHandlingException(requestMessage, ex);
 		}
 		if (errorChannel == null) {
@@ -480,6 +491,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 		else {
 			try {
+				// 将异常信息发送出去
 				sendOutput(new ErrorMessage(result), errorChannel, true);
 			}
 			catch (Exception e) {
@@ -491,6 +503,11 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 	}
 
+	/**
+	 * 从消息头中解析出 当发生异常时下游的异常通道
+	 * @param requestHeaders
+	 * @return
+	 */
 	protected Object resolveErrorChannel(final MessageHeaders requestHeaders) {
 		Object errorChannel = requestHeaders.getErrorChannel();
 		if (errorChannel == null) {

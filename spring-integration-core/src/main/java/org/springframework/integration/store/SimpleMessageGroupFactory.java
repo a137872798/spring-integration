@@ -59,6 +59,7 @@ public class SimpleMessageGroupFactory implements MessageGroupFactory {
 	public MessageGroup create(Collection<? extends Message<?>> messages, Object groupId, long timestamp,
 			boolean complete) {
 
+		// 创建消息组对象  默认情况下创建一个 LinkedHashMap  也可以基于持久化存储
 		return new SimpleMessageGroup(this.type.get(), messages, groupId, timestamp, complete, false);
 	}
 

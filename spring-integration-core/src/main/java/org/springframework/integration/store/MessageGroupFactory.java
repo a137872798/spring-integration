@@ -26,6 +26,7 @@ import org.springframework.messaging.Message;
  *
  * @author Artem Bilan
  * @since 4.3
+ * 该接口负责创建一个消息组
  */
 public interface MessageGroupFactory {
 

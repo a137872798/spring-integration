@@ -128,8 +128,14 @@ public abstract class AbstractExecutorChannel extends AbstractSubscribableChanne
 		return this.executorInterceptorsSize > 0;
 	}
 
+	/**
+	 * 内部线程池用于执行该对象
+	 */
 	protected class MessageHandlingTask implements Runnable {
 
+		/**
+		 * messageHandler的包装对象
+		 */
 		private final MessageHandlingRunnable delegate;
 
 		public MessageHandlingTask(MessageHandlingRunnable task) {

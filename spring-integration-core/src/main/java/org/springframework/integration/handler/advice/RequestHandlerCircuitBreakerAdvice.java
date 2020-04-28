@@ -32,7 +32,7 @@ import org.springframework.messaging.MessagingException;
  * @author Artem Bilan
  *
  * @since 2.2
- *
+ * 这些advice 都是挂载在一个 handler上 可以理解为是这个handler的增强器
  */
 public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAdvice {
 
@@ -57,11 +57,13 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 			this.metadataMap.putIfAbsent(target, new AdvisedMetadata());
 			metadata = this.metadataMap.get(target);
 		}
+		// 失败次数超过阈值 抛出异常
 		if (metadata.getFailures().get() >= this.threshold &&
 				System.currentTimeMillis() - metadata.getLastFailure() < this.halfOpenAfter) {
 			throw new CircuitBreakerOpenException(message, "Circuit Breaker is Open for " + target);
 		}
 		try {
+			// 一旦执行成功重置失败次数
 			Object result = callback.execute();
 			if (logger.isDebugEnabled() && metadata.getFailures().get() > 0) {
 				logger.debug("Closing Circuit Breaker for " + target);
@@ -81,6 +83,9 @@ public class RequestHandlerCircuitBreakerAdvice extends AbstractRequestHandlerAd
 		}
 	}
 
+	/**
+	 * 维护某个handler的失败次数以及最后次失败时间
+	 */
 	private static class AdvisedMetadata {
 
 		private final AtomicInteger failures = new AtomicInteger();

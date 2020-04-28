@@ -91,6 +91,7 @@ import org.springframework.util.CollectionUtils;
  * @author Meherzad Lahewala
  *
  * @since 2.0
+ * 作为关联消息处理器对象  处理目标为 MessageGroup
  */
 public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageProducingHandler
 		implements DiscardingMessageHandler, ApplicationEventPublisherAware, Lifecycle {
@@ -99,6 +100,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 
 	private final Map<UUID, ScheduledFuture<?>> expireGroupScheduledFutures = new ConcurrentHashMap<>();
 
+	/**
+	 * 处理逻辑接口
+	 */
 	private MessageGroupProcessor outputProcessor;
 
 	private MessageGroupStore messageStore;
@@ -446,6 +450,11 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageP
 		return this.evaluationContext;
 	}
 
+	/**
+	 * 该对象接收到消息时 不是想着直接处理 而是先尝试将消息归组  当某个MessageGroup 的消息接收完成时  比如 sequenceSize为5  并且收到了5条子消息  那么此时才将MessageGroup 交由
+	 * 处理器处理 并将生成的结果传播到 outputChannel
+	 * @param message
+	 */
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);

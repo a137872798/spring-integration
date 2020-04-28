@@ -42,6 +42,11 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 		return getRequiredDispatcher().getHandlerCount();
 	}
 
+	/**
+	 * 为消息通道设置handler
+	 * @param handler
+	 * @return
+	 */
 	@Override
 	public boolean subscribe(MessageHandler handler) {
 		MessageDispatcher dispatcher = getRequiredDispatcher();

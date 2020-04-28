@@ -78,6 +78,7 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
  * @author Artem Bilan
  *
  * @since 2.0
+ * 该对象 用于处理message 并按照逻辑将数据填充到数据库中(监听消息并更新目标数据 或者插入目标数据)
  */
 public class JdbcMessageHandler extends AbstractMessageHandler {
 
@@ -86,12 +87,18 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 
 	private final NamedParameterJdbcOperations jdbcOperations;
 
+	/**
+	 * 更新语句
+	 */
 	private String updateSql;
 
 	private PreparedStatementCreator generatedKeysStatementCreator;
 
 	private SqlParameterSourceFactory sqlParameterSourceFactory;
 
+	/**
+	 * 是否自动生成id
+	 */
 	private boolean keysGenerated;
 
 	private MessagePreparedStatementSetter preparedStatementSetter;
@@ -101,6 +108,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	 * execute to retrieve new rows.
 	 * @param dataSource Must not be null
 	 * @param updateSql query to execute
+	 *                  通过一个数据源 以及一个更新语句进行初始化
 	 */
 	public JdbcMessageHandler(DataSource dataSource, String updateSql) {
 		this(new JdbcTemplate(dataSource), updateSql);
@@ -193,6 +201,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 				return this.jdbcOperations.getJdbcOperations()
 						.execute(this.generatedKeysStatementCreator,
 								ps -> {
+									// 该对象负责从message中抽取出参数并设置到ps中
 									this.preparedStatementSetter.setValues(ps, message);
 									ps.executeUpdate();
 									ResultSet keys = ps.getGeneratedKeys(); // NOSONAR closed in JdbcUtils
@@ -211,11 +220,13 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 			else {
 				KeyHolder keyHolder = new GeneratedKeyHolder();
 				this.jdbcOperations.update(this.updateSql,
+						// 使用该工厂包装message后  messagte本身会被包装成BeanPropertySqlParameterSource  一般还是通过上面的方式吧
 						this.sqlParameterSourceFactory.createParameterSource(message), keyHolder);
 				return keyHolder.getKeyList();
 			}
 		}
 		else {
+			// 如果接收到的消息本身是一个迭代器 那么按照 下标和对应数据进行填充
 			if (message.getPayload() instanceof Iterable) {
 				Stream<? extends Message<?>> messageStream =
 						StreamSupport.stream(((Iterable<?>) message.getPayload()).spliterator(), false)

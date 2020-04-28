@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  *
  * @since 4.0
- *
+ * 某些message的存储层  避免某批消息未满足release条件时宕机
  */
 public class RedisChannelMessageStore
 		implements ChannelMessageStore, BeanNameAware, InitializingBean, BeanClassLoaderAware {

@@ -96,6 +96,11 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 		this.messageHandlingTaskDecorator = messageHandlingTaskDecorator;
 	}
 
+	/**
+	 * 使用分发器处理消息 如果设置了 executor 直接使用线程池执行任务
+	 * @param message the message.
+	 * @return
+	 */
 	@Override
 	public final boolean dispatch(final Message<?> message) {
 		if (this.executor != null) {
