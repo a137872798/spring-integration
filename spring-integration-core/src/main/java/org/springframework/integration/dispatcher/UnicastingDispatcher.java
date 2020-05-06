@@ -51,6 +51,7 @@ import org.springframework.util.Assert;
  * @author Artem Bilan
  *
  * @since 1.0.2
+ * 单播分发器  也就是点到点
  */
 public class UnicastingDispatcher extends AbstractDispatcher {
 
@@ -60,6 +61,9 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 
 	private boolean failover = true;
 
+	/**
+	 * 指定分发策略
+	 */
 	private LoadBalancingStrategy loadBalancingStrategy;
 
 	private MessageHandlingTaskDecorator messageHandlingTaskDecorator = task -> task;
@@ -172,6 +176,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	 * Returns the iterator that will be used to loop over the handlers.
 	 * Delegates to a {@link LoadBalancingStrategy} if available. Otherwise,
 	 * it simply returns the Iterator for the existing handler List.
+	 * 获取所有候选handler
 	 */
 	private Iterator<MessageHandler> getHandlerIterator(Message<?> message) {
 		Set<MessageHandler> handlers = getHandlers();

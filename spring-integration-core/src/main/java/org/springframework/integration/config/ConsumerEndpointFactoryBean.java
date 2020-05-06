@@ -96,6 +96,9 @@ public class ConsumerEndpointFactoryBean
 
 	private String role;
 
+	/**
+	 * 指定数据来源
+	 */
 	private MessageChannel inputChannel;
 
 	private ConfigurableBeanFactory beanFactory;

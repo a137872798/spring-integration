@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @author Artem Bilan
  * @author Gary Russell
+ * 该对象是一个  messageHandler与transformer 的适配器
  */
 public class MessageTransformingHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
 

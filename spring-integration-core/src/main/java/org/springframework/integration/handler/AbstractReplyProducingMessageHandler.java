@@ -38,10 +38,12 @@ import org.springframework.util.ClassUtils;
  * @author Gary Russell
  * @author Artem Bilan
  * @author David Liu
+ * 父级对象具备将消息发往下游的能力
  */
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageProducingHandler
 		implements BeanClassLoaderAware {
 
+	// 这里允许设置一组增强对象
 	private final List<Advice> adviceChain = new LinkedList<>();
 
 	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
@@ -119,6 +121,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	/**
 	 * {@inheritDoc}
+	 * 父级处理数据会转发到该方法
 	 */
 	@Override
 	protected final void handleMessageInternal(Message<?> message) {

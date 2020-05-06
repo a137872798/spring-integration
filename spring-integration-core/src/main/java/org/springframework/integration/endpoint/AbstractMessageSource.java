@@ -175,6 +175,11 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 		}
 	}
 
+	/**
+	 * 注意 从jdbc 拉取的数据需要在这里转换成message 应该在 spring-integration 中数据是以message的格式进行传播的
+	 * @param result
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	protected Message<T> buildMessage(Object result) {
 		if (result == null) {

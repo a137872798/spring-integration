@@ -29,6 +29,7 @@ import org.springframework.messaging.Message;
  * those delimiters.
  *
  * @author Mark Fisher
+ * 默认的消息打散器 消息体 按照某个分隔符进行打散
  */
 public class DefaultMessageSplitter extends AbstractMessageSplitter {
 

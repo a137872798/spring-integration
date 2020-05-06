@@ -186,6 +186,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 
 	/**
 	 * Executes the update, passing the message into the {@link SqlParameterSourceFactory}.
+	 * 将数据写入到表中
 	 */
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
@@ -195,8 +196,15 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 		}
 	}
 
+	/**
+	 * 从message中捞出参数 执行更新语句
+	 * @param message
+	 * @param keysGenerated
+	 * @return
+	 */
 	protected List<? extends Map<String, Object>> executeUpdateQuery(final Message<?> message, boolean keysGenerated) {
 		if (keysGenerated) {
+			// 如果指定了 参数读取器
 			if (this.preparedStatementSetter != null) {
 				return this.jdbcOperations.getJdbcOperations()
 						.execute(this.generatedKeysStatementCreator,

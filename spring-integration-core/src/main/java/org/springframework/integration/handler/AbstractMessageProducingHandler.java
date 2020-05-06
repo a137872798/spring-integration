@@ -64,10 +64,14 @@ import reactor.core.publisher.Mono;
  * @author Marius Bogoevici
  *
  * since 4.1
+ * 该抽象类 相当于是一个桥梁 向上处理接收到的消息 同时将结果发往下游
  */
 public abstract class AbstractMessageProducingHandler extends AbstractMessageHandler
 		implements MessageProducer, HeaderPropagationAware {
 
+	/**
+	 * 该对象是用于简化发送的操作
+	 */
 	protected final MessagingTemplate messagingTemplate = new MessagingTemplate(); // NOSONAR final
 
 	private boolean async;
@@ -78,10 +82,16 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	@Nullable
 	private MessageChannel outputChannel;
 
+	/**
+	 * 某些被强制声明的 请求头是不需要被传播的
+	 */
 	private String[] notPropagatedHeaders;
 
 	private boolean selectiveHeaderPropagation;
 
+	/**
+	 * 代表禁止传播消息头
+	 */
 	private boolean noHeadersPropagation;
 
 	/**
@@ -142,7 +152,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 * headers in a constructor, since {@link #setNotPropagatedHeaders(String...)} is not
 	 * final.
 	 * @param headers Header patterns to not propagate.
-	 * @param merge true to merge with existing patterns; false to replace.
+	 * @param merge true to merge with existing patterns; false to replace.   代表增强更新 还是全量更新
 	 * @since 5.0.2
 	 */
 	protected final void updateNotPropagatedHeaders(String[] headers, boolean merge) {
@@ -208,6 +218,10 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		this.messagingTemplate.setDestinationResolver(getChannelResolver());
 	}
 
+	/**
+	 * 获取下游管道  如果设置的是 channelName  尝试从 beanFactory中获取对应的bean
+	 * @return
+	 */
 	@Override
 	@Nullable
 	public MessageChannel getOutputChannel() {
@@ -219,6 +233,11 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return this.outputChannel;
 	}
 
+	/**
+	 * 将处理后的结果发往下游
+	 * @param result
+	 * @param requestMessage
+	 */
 	protected void sendOutputs(Object result, Message<?> requestMessage) {
 		if (result instanceof Iterable<?> && shouldSplitOutput((Iterable<?>) result)) {
 			for (Object o : (Iterable<?>) result) {
@@ -230,6 +249,11 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 	}
 
+	/**
+	 * 消息本身是否需要被打散
+	 * @param reply
+	 * @return
+	 */
 	protected boolean shouldSplitOutput(Iterable<?> reply) {
 		for (Object next : reply) {
 			if (next instanceof Message<?> || next instanceof AbstractIntegrationMessageBuilder<?>) {
@@ -239,11 +263,17 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return false;
 	}
 
+	/**
+	 * 将结果输出到下游
+	 * @param replyArg   本次处理的结果
+	 * @param requestMessage  这个是本handler 接收到的消息源
+	 */
 	protected void produceOutput(Object replyArg, final Message<?> requestMessage) {
 		MessageHeaders requestHeaders = requestMessage.getHeaders();
 		Object reply = replyArg;
 		Object replyChannel = null;
 		if (getOutputChannel() == null) {
+			// slip的可以先忽略
 			Map<?, ?> routingSlipHeader = obtainRoutingSlipHeader(requestHeaders, reply);
 			if (routingSlipHeader != null) {
 				Assert.isTrue(routingSlipHeader.size() == 1,
@@ -259,6 +289,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 					reply = addRoutingSlipHeader(reply, routingSlip, routingSlipIndex);
 				}
 			}
+			// 解析出响应通道
 			if (replyChannel == null) {
 				replyChannel = obtainReplyChannel(requestHeaders, reply);
 			}
@@ -266,6 +297,12 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		doProduceOutput(requestMessage, requestHeaders, reply, replyChannel);
 	}
 
+	/**
+	 * 首先尝试从上游消息获取相关的请求头  没有获取到的情况 从本次生成的结果消息获取相关请求头
+	 * @param requestHeaders
+	 * @param reply
+	 * @return
+	 */
 	@Nullable
 	private Map<?, ?> obtainRoutingSlipHeader(MessageHeaders requestHeaders, Object reply) {
 		Map<?, ?> routingSlipHeader = requestHeaders.get(IntegrationMessageHeaderAccessor.ROUTING_SLIP, Map.class);
@@ -297,9 +334,17 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		return replyChannel;
 	}
 
+	/**
+	 * 该方法真正将数据发往下游
+	 * @param requestMessage  上游下发的消息
+	 * @param requestHeaders
+	 * @param reply   本次处理结果
+	 * @param replyChannel
+	 */
 	private void doProduceOutput(Message<?> requestMessage, MessageHeaders requestHeaders, Object reply,
 			Object replyChannel) {
 
+		// 如果是异步处理 且 支持设置监听器
 		if (this.async && (reply instanceof ListenableFuture<?> || reply instanceof Publisher<?>)) {
 			MessageChannel messageChannel = getOutputChannel();
 			if (reply instanceof ListenableFuture<?> ||
@@ -315,6 +360,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 			}
 		}
 		else {
+			// 默认情况下 请求头中的数据是要传播的
 			sendOutput(createOutputMessage(reply, requestHeaders), replyChannel, false);
 		}
 	}
@@ -399,6 +445,12 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		}
 	}
 
+	/**
+	 * 将本次处理结果 与上游消息的消息头合并成一个新的消息 用于发往下游
+	 * @param output
+	 * @param requestHeaders
+	 * @return
+	 */
 	protected Message<?> createOutputMessage(Object output, MessageHeaders requestHeaders) {
 		AbstractIntegrationMessageBuilder<?> builder;
 		if (output instanceof Message<?>) {
@@ -413,6 +465,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 		else {
 			builder = this.getMessageBuilderFactory().withPayload(output);
 		}
+		// 复制消息头
 		if (!this.noHeadersPropagation && shouldCopyRequestHeaders()) {
 			builder.filterAndCopyHeadersIfAbsent(requestHeaders,
 					this.selectiveHeaderPropagation ? this.notPropagatedHeaders : null);
@@ -432,7 +485,7 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 	 */
 	protected void sendOutput(Object output, @Nullable Object replyChannelArg, boolean useArgChannel) {
 		Object replyChannel = replyChannelArg;
-		// 先获取默认的响应通道
+		// 获取下游通道
 		MessageChannel outChannel = getOutputChannel();
 		if (!useArgChannel && outChannel != null) {
 			replyChannel = outChannel;
@@ -443,7 +496,6 @@ public abstract class AbstractMessageProducingHandler extends AbstractMessageHan
 
 		if (replyChannel instanceof MessageChannel) {
 			if (output instanceof Message<?>) {
-				// 如果要传输的数据本身就是message类型 直接传输
 				this.messagingTemplate.send((MessageChannel) replyChannel, (Message<?>) output);
 			}
 			else {

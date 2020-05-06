@@ -186,6 +186,9 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		return this.pollingFlux;
 	}
 
+	/**
+	 * 创建定时拉取任务 并从MessageSource 拉取数据
+	 */
 	@Override
 	protected void onInit() {
 		synchronized (this.initializationMonitor) {
@@ -194,6 +197,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			}
 			Assert.notNull(this.trigger, "Trigger is required");
 			if (this.taskExecutor != null) {
+				// 使用全局的异常处理线程池
 				if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
 					if (this.errorHandler == null) {
 						this.errorHandler = ChannelUtils.getErrorHandler(getBeanFactory());
@@ -219,12 +223,16 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	// LifecycleSupport implementation
 
+	/**
+	 * 定期定时拉取任务
+	 */
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
 		if (!this.initialized) {
 			onInit();
 		}
 
+		// 创建拉取任务
 		this.pollingTask = createPollingTask();
 
 		if (isReactive()) {
@@ -239,6 +247,10 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 	}
 
+	/**
+	 * 从数据源拉取数据的回调
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	private Callable<Message<?>> createPollingTask() {
 		List<Advice> receiveOnlyAdviceChain = null;
@@ -251,6 +263,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		Callable<Message<?>> task = this::doPoll;
 
 		List<Advice> advices = this.adviceChain;
+		// 将advice 包装到任务中
 		if (!CollectionUtils.isEmpty(advices)) {
 			ProxyFactory proxyFactory = new ProxyFactory(task);
 			if (!CollectionUtils.isEmpty(advices)) {
@@ -267,6 +280,10 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		return task;
 	}
 
+	/**
+	 * 这里允许进行2层解耦  第一层是执行定时任务的线程池  第二层是执行拉取逻辑的线程池 (默认是SynchronExecutor)
+	 * @return
+	 */
 	private Runnable createPoller() {
 		return () ->
 				this.taskExecutor.execute(() -> {
@@ -323,6 +340,10 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				.doOnSubscribe(subs -> this.subscription = subs);
 	}
 
+	/**
+	 * 从数据源拉取数据
+	 * @return
+	 */
 	private Message<?> pollForMessage() {
 		try {
 			return this.pollingTask.call();
@@ -352,12 +373,17 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 	}
 
+	/**
+	 * 拉取逻辑
+	 * @return
+	 */
 	private Message<?> doPoll() {
 		IntegrationResourceHolder holder = bindResourceHolderIfNecessary(getResourceKey(), getResourceToBind());
 		Message<?> message;
 		try {
 			message = receiveMessage();
 		}
+		// 当拉取出现异常时
 		catch (Exception e) {
 			if (Thread.interrupted()) {
 				if (logger.isDebugEnabled()) {
@@ -383,6 +409,11 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		return message;
 	}
 
+	/**
+	 * 当拉取到消息时 交由本对象处理消息
+	 * @param holder
+	 * @param message
+	 */
 	private void messageReceived(IntegrationResourceHolder holder, Message<?> message) {
 		if (this.logger.isDebugEnabled()) {
 			this.logger.debug("Poll resulted in Message: " + message);

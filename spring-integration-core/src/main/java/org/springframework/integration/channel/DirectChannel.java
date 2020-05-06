@@ -35,6 +35,9 @@ import org.springframework.lang.Nullable;
  */
 public class DirectChannel extends AbstractSubscribableChannel {
 
+	/**
+	 * 单播分发器 也就是实际上数据是点到点的
+	 */
 	private final UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 
 	private volatile Integer maxSubscribers;

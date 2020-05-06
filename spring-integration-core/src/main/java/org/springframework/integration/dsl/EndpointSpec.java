@@ -56,6 +56,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	@SuppressWarnings("unchecked")
 	protected EndpointSpec(H handler) {
 		try {
+			// 获取泛化参数类型 并进行实例化
 			Class<?> fClass = ResolvableType.forClass(this.getClass()).as(EndpointSpec.class).resolveGenerics()[1];
 			this.endpointFactoryBean = (F) fClass.newInstance();
 			this.handler = handler;
@@ -86,8 +87,10 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	 * @return the endpoint spec.
 	 * @see org.springframework.integration.endpoint.AbstractPollingEndpoint
 	 * @see PollerSpec
+	 * 当消息源被包装成该对象后  就可以为该对象设置 poller
 	 */
 	public S poller(PollerSpec pollerMetadataSpec) {
+		// 将注册到 poller上的所有组件拷贝一份到 componentsToRegister
 		Map<Object, String> components = pollerMetadataSpec.getComponentsToRegister();
 		if (components != null) {
 			this.componentsToRegister.putAll(components);
@@ -99,6 +102,7 @@ public abstract class EndpointSpec<S extends EndpointSpec<S, F, H>, F extends Be
 	 * @param pollerMetadata the pollerMetadata
 	 * @return the endpoint spec.
 	 * @see org.springframework.integration.endpoint.AbstractPollingEndpoint
+	 * 通过元数据生成一个 定时拉取链
 	 */
 	public abstract S poller(PollerMetadata pollerMetadata);
 

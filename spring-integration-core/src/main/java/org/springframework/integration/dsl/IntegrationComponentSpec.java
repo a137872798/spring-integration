@@ -60,6 +60,7 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 
 	/**
 	 * @return the configured component.
+	 * 获取真正工作的对象
 	 */
 	public T get() {
 		if (this.target == null) {
@@ -99,6 +100,9 @@ public abstract class IntegrationComponentSpec<S extends IntegrationComponentSpe
 		}
 	}
 
+	/**
+	 * 通过 IntegrationFlow 生成的类都会被包装成某写Endpoint 这时就同时具备了生命周期的功能 通过组合的方式来解耦 并配合流式调用的启动
+	 */
 	@Override
 	public void start() {
 		T instance = get();

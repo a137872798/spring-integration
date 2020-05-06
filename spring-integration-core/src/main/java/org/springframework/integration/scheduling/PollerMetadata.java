@@ -31,6 +31,7 @@ import org.springframework.util.ErrorHandler;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * 对应某个 poller的元数据信息
  */
 public class PollerMetadata {
 
@@ -44,6 +45,9 @@ public class PollerMetadata {
 	 */
 	public static final String DEFAULT_POLLER = DEFAULT_POLLER_METADATA_BEAN_NAME;
 
+	/**
+	 * 触发器对象
+	 */
 	private volatile Trigger trigger;
 
 	private volatile long maxMessagesPerPoll = MAX_MESSAGES_UNBOUNDED;
@@ -52,6 +56,9 @@ public class PollerMetadata {
 
 	private volatile ErrorHandler errorHandler;
 
+	/**
+	 * 一组增强链对象
+	 */
 	private volatile List<Advice> adviceChain;
 
 	private volatile Executor taskExecutor;

@@ -176,6 +176,9 @@ public class JdbcPollingChannelAdapter extends AbstractMessageSource<Object> {
 		this.maxRows = maxRows;
 	}
 
+	/**
+	 * 该bean 对象被注入到工厂时 会触发该方法
+	 */
 	@Override
 	protected void onInit() {
 		BeanFactory beanFactory = getBeanFactory();

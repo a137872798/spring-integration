@@ -26,6 +26,7 @@ import org.springframework.messaging.MessageHandler;
  * @author Artem Bilan
  *
  * @since 5.0
+ * 将消息处理器包装成一个endpoint 对象
  */
 public final class GenericEndpointSpec<H extends MessageHandler>
 		extends ConsumerEndpointSpec<GenericEndpointSpec<H>, H> {

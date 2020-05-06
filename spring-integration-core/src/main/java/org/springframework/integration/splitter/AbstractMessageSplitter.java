@@ -51,10 +51,14 @@ import reactor.core.publisher.Mono;
  * @author Artem Bilan
  * @author Ruslan Stelmachenko
  * @author Gary Russell
+ * 消息拆解骨架类
  */
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler
 		implements DiscardingMessageHandler {
 
+	/**
+	 * 代表是否要为拆解后的数据设置序列号
+	 */
 	private boolean applySequence = true;
 
 	private MessageChannel discardChannel;
@@ -95,6 +99,10 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		this.discardChannelName = discardChannelName;
 	}
 
+	/**
+	 * 对应某个channel
+	 * @return
+	 */
 	@Override
 	public MessageChannel getDiscardChannel() {
 		if (this.discardChannel == null) {
@@ -113,9 +121,15 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 				"'discardChannelName' and 'discardChannel' are mutually exclusive.");
 	}
 
+	/**
+	 * 处理上游数据
+	 * @param message
+	 * @return
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	protected final Object handleRequestMessage(Message<?> message) {
+		// 拆解数据
 		Object result = splitMessage(message);
 		// return null if 'null'
 		if (result == null) {
@@ -132,6 +146,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 
 		if (result instanceof Iterable<?>) {
 			Iterable<Object> iterable = (Iterable<Object>) result;
+			// 预估本次拆解后的总长度
 			sequenceSize = obtainSizeIfPossible(iterable);
 			if (reactive) {
 				flux = Flux.fromIterable(iterable);
@@ -190,6 +205,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			}
 		}
 
+		// 当拆解不出数据时 将源数据发往 discardingChannel
 		if (iterator != null && !iterator.hasNext()) {
 			MessageChannel discardingChannel = getDiscardChannel();
 			if (discardingChannel != null) {
@@ -208,6 +224,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		final Object correlationId = message.getHeaders().getId();
 		final AtomicInteger sequenceNumber = new AtomicInteger(1);
 
+		// 该函数会作用于每个发往下游的message
 		Function<Object, AbstractIntegrationMessageBuilder<?>> messageBuilderFunction =
 				object -> createBuilder(object, headers, correlationId, sequenceNumber.getAndIncrement(), sequenceSize);
 
@@ -224,8 +241,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 							}));
 		}
 		else {
-			return new FunctionIterator<>(result instanceof AutoCloseable && !result.equals(iterator)
-					? (AutoCloseable) result : null, iterator, messageBuilderFunction);
+			return new FunctionIterator<>(result instanceof AutoCloseable && !result.equals(iterator) ? (AutoCloseable) result : null, iterator, messageBuilderFunction);
 		}
 	}
 
@@ -333,6 +349,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	 * case, a single reply Message will be produced.
 	 * @param message The message.
 	 * @return The result of splitting the message.
+	 * 通过拓展该方法实现自动拆解
 	 */
 	protected abstract Object splitMessage(Message<?> message);
 

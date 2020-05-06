@@ -22,12 +22,16 @@ import org.springframework.integration.scheduling.PollerMetadata;
 
 /**
  * @author Artem Bilan
- *
  * @since 5.0
+ * 通过 IntegrationFlow处理后 messageSource 会被包装成该对象
  */
 public final class SourcePollingChannelAdapterSpec extends
 		EndpointSpec<SourcePollingChannelAdapterSpec, SourcePollingChannelAdapterFactoryBean, MessageSource<?>> {
 
+	/**
+	 * 使用一个数据源对象进行初始化
+	 * @param messageSource
+	 */
 	SourcePollingChannelAdapterSpec(MessageSource<?> messageSource) {
 		super(messageSource);
 		this.endpointFactoryBean.setSource(messageSource);
@@ -43,8 +47,14 @@ public final class SourcePollingChannelAdapterSpec extends
 		return _this();
 	}
 
+	/**
+	 * 为数据源绑定一个 poller对象
+	 * @param pollerMetadata the pollerMetadata  该对象内部包含了 触发器 使用的线程池 等信息
+	 * @return
+	 */
 	public SourcePollingChannelAdapterSpec poller(PollerMetadata pollerMetadata) {
 		if (pollerMetadata != null) {
+			// 如果没有设置每次拉取的上限 默认拉取一条
 			if (PollerMetadata.MAX_MESSAGES_UNBOUNDED == pollerMetadata.getMaxMessagesPerPoll()) {
 				pollerMetadata.setMaxMessagesPerPoll(1);
 			}

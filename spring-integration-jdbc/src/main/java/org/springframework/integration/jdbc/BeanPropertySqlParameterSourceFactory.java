@@ -31,6 +31,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
  * @author Dave Syer
  * @author Gary Russell
  * @since 2.0
+ * 该对象负责从target中抽取 jdbc需要的参数
  */
 public class BeanPropertySqlParameterSourceFactory implements SqlParameterSourceFactory {
 

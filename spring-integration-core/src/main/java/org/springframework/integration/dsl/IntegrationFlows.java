@@ -237,11 +237,14 @@ public final class IntegrationFlows {
 			@Nullable IntegrationFlowBuilder integrationFlowBuilderArg) {
 
 		IntegrationFlowBuilder integrationFlowBuilder = integrationFlowBuilderArg;
+		// messageSource 对象被包装成一个 spec 代表一个片段
 		SourcePollingChannelAdapterSpec spec = new SourcePollingChannelAdapterSpec(messageSource);
 		if (endpointConfigurer != null) {
+			// 使用该消费者处理消息源的包装对象
 			endpointConfigurer.accept(spec);
 		}
 		if (integrationFlowBuilder == null) {
+			// 创建一个空的builder  对象 用于拼接各种组件
 			integrationFlowBuilder = new IntegrationFlowBuilder();
 		}
 		return integrationFlowBuilder.addComponent(spec)

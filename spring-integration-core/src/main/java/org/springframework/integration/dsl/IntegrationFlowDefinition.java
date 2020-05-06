@@ -78,6 +78,7 @@ public abstract class IntegrationFlowDefinition<B extends IntegrationFlowDefinit
 	 * @return the current {@link IntegrationFlowDefinition}.
 	 * @see org.springframework.integration.transformer.MethodInvokingTransformer
 	 * @see org.springframework.integration.handler.LambdaMessageProcessor
+	 * 当 IntegrationFlows 调用 from() 之后 返回的就变成一个builder 对象了 之后就直接通过builder添加组件
 	 */
 	public <S, T> B transform(GenericTransformer<S, T> genericTransformer) {
 		return transform(null, genericTransformer);

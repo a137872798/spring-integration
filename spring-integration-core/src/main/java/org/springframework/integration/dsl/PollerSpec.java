@@ -43,6 +43,7 @@ import org.springframework.util.ErrorHandler;
  * @author Gary Russell
  *
  * @since 5.0
+ * 对应某个 poller的包装对象
  */
 public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, PollerMetadata>
 		implements ComponentsRegistration {
@@ -51,7 +52,12 @@ public final class PollerSpec extends IntegrationComponentSpec<PollerSpec, Polle
 
 	private final Map<Object, String> componentsToRegister = new LinkedHashMap<>();
 
+	/**
+	 * Trigger  触发器 包含一些定时相关的api
+	 * @param trigger
+	 */
 	PollerSpec(Trigger trigger) {
+		// 生成一个拉取对象的元数据信息
 		this.target = new PollerMetadata();
 		this.target.setAdviceChain(this.adviceChain);
 		this.target.setTrigger(trigger);

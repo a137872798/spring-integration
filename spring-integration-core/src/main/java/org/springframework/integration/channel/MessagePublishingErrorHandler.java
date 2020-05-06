@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * 当处理过程中出现异常时  尝试转发到该对象进行处理
  */
 public class MessagePublishingErrorHandler extends ErrorMessagePublisher implements ErrorHandler {
 
@@ -89,6 +90,7 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 
 	@Override
 	public final void handleError(Throwable ex) {
+		// 将异常映射到某个channel
 		MessageChannel errorChannel = resolveErrorChannel(ex);
 		boolean sent = false;
 		if (errorChannel != null) {
@@ -114,6 +116,11 @@ public class MessagePublishingErrorHandler extends ErrorMessagePublisher impleme
 		}
 	}
 
+	/**
+	 * 将异常映射到某个异常
+	 * @param t
+	 * @return
+	 */
 	@Nullable
 	private MessageChannel resolveErrorChannel(Throwable t) {
 		DestinationResolver<MessageChannel> channelResolver = getChannelResolver();

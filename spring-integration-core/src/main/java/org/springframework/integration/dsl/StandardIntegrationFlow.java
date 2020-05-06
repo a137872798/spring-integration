@@ -63,13 +63,23 @@ import org.springframework.messaging.MessageChannel;
  * @see IntegrationFlows
  * @see org.springframework.integration.dsl.context.IntegrationFlowBeanPostProcessor
  * @see org.springframework.integration.dsl.context.IntegrationFlowContext
+ * IntegrationFlowBuilder 构建的最终结果
  */
 public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle {
 
+	/**
+	 * 将会被构建的一组 component
+	 */
 	private final Map<Object, String> integrationComponents;
 
+	/**
+	 * 本此包含的所有 component 中实现 SmartLifecycle接口的对象
+	 */
 	private final List<SmartLifecycle> lifecycles = new LinkedList<>();
 
+	/**
+	 * 最上游的数据管道
+	 */
 	private MessageChannel inputChannel;
 
 	private boolean running;
@@ -108,13 +118,19 @@ public class StandardIntegrationFlow implements IntegrationFlow, SmartLifecycle 
 		return Collections.unmodifiableMap(this.integrationComponents);
 	}
 
+	/**
+	 * 执行整个管道链
+	 */
 	@Override
 	public void start() {
 		if (!this.running) {
 			List<Object> components = new LinkedList<>(this.integrationComponents.keySet());
 			ListIterator<Object> iterator = components.listIterator(this.integrationComponents.size());
 			this.lifecycles.clear();
+			// 返回的迭代器是一个双向迭代器  根据传入的 size 作为偏移量 其余数据会追加到前面后者后面
+			// 当传入长度就是 指定长度时 就是一个往前迭代的迭代器
 			while (iterator.hasPrevious()) {
+				// 按照从下往上的顺序启动
 				Object component = iterator.previous();
 				if (component instanceof SmartLifecycle) {
 					this.lifecycles.add((SmartLifecycle) component);

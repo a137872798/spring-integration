@@ -33,6 +33,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  * @author Gary Russell
  *
  * @since 5.0
+ * poller 的静态工具类 便于按照指定需求 快捷创建 PollerSpec 对象
  */
 public final class Pollers {
 
@@ -44,14 +45,31 @@ public final class Pollers {
 		return fixedRate(period.toMillis());
 	}
 
+	/**
+	 * 生成 按照一定时间间隔执行的触发器
+	 * @param period
+	 * @return
+	 */
 	public static PollerSpec fixedRate(long period) {
 		return fixedRate(period, null);
 	}
 
+	/**
+	 *
+	 * @param period
+	 * @param timeUnit  默认情况不指定时间单元
+	 * @return
+	 */
 	public static PollerSpec fixedRate(long period, TimeUnit timeUnit) {
 		return fixedRate(period, timeUnit, 0);
 	}
 
+	/**
+	 *
+	 * @param period
+	 * @param initialDelay 默认情况不指定首次执行延迟
+	 * @return
+	 */
 	public static PollerSpec fixedRate(Duration period, Duration initialDelay) {
 		return fixedRate(period.toMillis(), initialDelay.toMillis());
 	}
@@ -88,6 +106,14 @@ public final class Pollers {
 		return periodicTrigger(period, timeUnit, false, initialDelay);
 	}
 
+	/**
+	 * 生成一个定期执行任务的触发器
+	 * @param period
+	 * @param timeUnit
+	 * @param fixedRate
+	 * @param initialDelay
+	 * @return
+	 */
 	private static PollerSpec periodicTrigger(long period, TimeUnit timeUnit, boolean fixedRate, long initialDelay) {
 		PeriodicTrigger periodicTrigger = new PeriodicTrigger(period, timeUnit);
 		periodicTrigger.setFixedRate(fixedRate);

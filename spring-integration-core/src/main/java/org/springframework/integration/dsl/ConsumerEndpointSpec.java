@@ -52,6 +52,9 @@ import reactor.util.function.Tuple2;
 public abstract class ConsumerEndpointSpec<S extends ConsumerEndpointSpec<S, H>, H extends MessageHandler>
 		extends EndpointSpec<S, ConsumerEndpointFactoryBean, H> {
 
+	/**
+	 * 本端点相关的一组增强逻辑
+	 */
 	protected final List<Advice> adviceChain = new LinkedList<>(); // NOSONAR final
 
 	protected ConsumerEndpointSpec(H messageHandler) {

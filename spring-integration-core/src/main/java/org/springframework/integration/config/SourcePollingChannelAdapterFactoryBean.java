@@ -49,6 +49,9 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 	private MessageSource<?> source;
 
+	/**
+	 * 结果输出通道
+	 */
 	private MessageChannel outputChannel;
 
 	private String outputChannelName;
@@ -164,6 +167,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			}
 			Assert.notNull(this.source, "source is required");
 
+			// 初始化适配器对象 该对象负责构建 poller 从 messageSource拉取数据的逻辑
 			SourcePollingChannelAdapter spca = new SourcePollingChannelAdapter();
 			spca.setSource(this.source);
 

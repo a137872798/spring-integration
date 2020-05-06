@@ -125,6 +125,9 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 	private static final Set<MessageProducer> REFERENCED_REPLY_PRODUCERS = new HashSet<>();
 
+	/**
+	 * 本次builder 会创建的一组对象
+	 */
 	protected final Map<Object, String> integrationComponents = new LinkedHashMap<>(); //NOSONAR - final
 
 	private MessageChannel currentMessageChannel;
@@ -138,6 +141,11 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	protected BaseIntegrationFlowDefinition() {
 	}
 
+	/**
+	 * 为构造链追加一个组件对象
+	 * @param component
+	 * @return
+	 */
 	protected B addComponent(Object component) {
 		return addComponent(component, null);
 	}
@@ -242,6 +250,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * will populate it as a bean with a generated name.
 	 * @param messageChannel the {@link MessageChannel} to populate.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * 指定当前环节channel
 	 */
 	public B channel(MessageChannel messageChannel) {
 		Assert.notNull(messageChannel, "'messageChannel' must not be null");
@@ -686,6 +695,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @see MethodInvokingTransformer
 	 * @see LambdaMessageProcessor
 	 * @see GenericEndpointSpec
+	 * transform 可以理解成一个阶段   在这里包含了2个channel的数据转移
 	 */
 	public <P, T> B transform(Class<P> payloadType, GenericTransformer<P, T> genericTransformer,
 			Consumer<GenericEndpointSpec<MessageTransformingHandler>> endpointConfigurer) {
@@ -884,6 +894,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * </pre>
 	 * @param messageHandler the {@link MessageHandler} to use.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * 为构造链追加一个handler 对象
 	 */
 	public B handle(MessageHandler messageHandler) {
 		return handle(messageHandler, (Consumer<GenericEndpointSpec<MessageHandler>>) null);
@@ -1099,6 +1110,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param endpointConfigurer the {@link Consumer} to provide integration endpoint options.
 	 * @param <H> the {@link MessageHandler} type.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
+	 * 为当前组件追加一个handle
 	 */
 	public <H extends MessageHandler> B handle(H messageHandler, Consumer<GenericEndpointSpec<H>> endpointConfigurer) {
 		Assert.notNull(messageHandler, "'messageHandler' must not be null");
@@ -1458,6 +1470,7 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 	 * @param <P> the payload type or {@code Message.class}.
 	 * @return the current {@link BaseIntegrationFlowDefinition}.
 	 * @see LambdaMessageProcessor
+	 * 声明指定的拆分逻辑拆分上层的消息流
 	 */
 	public <P> B split(Class<P> payloadType, Function<P, ?> splitter) {
 		return split(payloadType, splitter, null);
@@ -2871,6 +2884,13 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 				.get();
 	}
 
+	/**
+	 * 为当前对象注册一个 endpoint
+	 * @param endpointSpec
+	 * @param endpointConfigurer
+	 * @param <S>
+	 * @return
+	 */
 	@SuppressWarnings(UNCHECKED)
 	private <S extends ConsumerEndpointSpec<S, ? extends MessageHandler>> B register(S endpointSpec,
 			Consumer<S> endpointConfigurer) {
@@ -2881,13 +2901,16 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 
 		MessageChannel inputChannel = getCurrentMessageChannel();
 		currentMessageChannel(null);
+		// 如果此时channel 对象还没有创建 直接使用一个 directChannel
 		if (inputChannel == null) {
 			inputChannel = new DirectChannel();
+			// 注册下游管道   比如调用  transform() 后需要一个管道去接收之前发送的数据
 			this.registerOutputChannelIfCan(inputChannel);
 		}
 
 		Tuple2<ConsumerEndpointFactoryBean, ? extends MessageHandler> factoryBeanTuple2 = endpointSpec.get();
 
+		// 把handler 上注册的组件转移到 该对象中
 		addComponents(endpointSpec.getComponentsToRegister());
 
 		if (inputChannel instanceof MessageChannelReference) {
@@ -2902,14 +2925,22 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 				}
 				registerOutputChannelIfCan(inputChannel);
 			}
+			// 这里就完成了数据的衔接  上游MessageSource 会将数据发送到 inputChannel 同时下游的 MessageHandler 会将	inputChannel 作为数据来源
 			factoryBeanTuple2.getT1().setInputChannel(inputChannel);
 		}
 
+		// 将handler 做为当前组件 当下游继续注册相关组件时 就可以自动生成用于连接的 channel
 		return addComponent(endpointSpec).currentComponent(factoryBeanTuple2.getT2());
 	}
 
+	/**
+	 * 设置一个目标管道 这样数据会被发送到目标管道上
+	 * @param outputChannel
+	 * @return
+	 */
 	private B registerOutputChannelIfCan(MessageChannel outputChannel) {
 		if (!(outputChannel instanceof FixedSubscriberChannelPrototype)) {
+			// 将数据管道追加到组件链上
 			addComponent(outputChannel, null);
 			Object currComponent = getCurrentComponent();
 			if (currComponent != null) {
@@ -2928,9 +2959,11 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 						messageProducer.setOutputChannel(outputChannel);
 					}
 				}
+				// 对应某个会被轮询拉取的数据源
 				else if (currComponent instanceof SourcePollingChannelAdapterSpec) {
 					SourcePollingChannelAdapterFactoryBean pollingChannelAdapterFactoryBean =
 							((SourcePollingChannelAdapterSpec) currComponent).get().getT1();
+					// 为数据源设置 输出通道
 					if (channelName != null) {
 						pollingChannelAdapterFactoryBean.setOutputChannelName(channelName);
 					}
@@ -2967,7 +3000,12 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 		return (B) this;
 	}
 
+	/**
+	 * 通过构建链 生成实际对象
+	 * @return
+	 */
 	protected StandardIntegrationFlow get() {
+		// 首先确保实例对象还没有被创建  该变量没有加 volatile
 		if (this.integrationFlow == null) {
 			MessageChannel currentChannel = getCurrentMessageChannel();
 			if (currentChannel instanceof FixedSubscriberChannelPrototype) {
@@ -2978,21 +3016,25 @@ public abstract class BaseIntegrationFlowDefinition<B extends BaseIntegrationFlo
 						"EIP-method in the 'IntegrationFlow' definition.");
 			}
 
+			// 在构造链中用到的组件都会加入到该容器中
 			Map<Object, String> components = getIntegrationComponents();
 			if (components.size() == 1) {
 				Object currComponent = getCurrentComponent();
 				if (currComponent != null) {
+					// 无法以数据源作为一个构造结果 必须要设置它的下游
 					if (currComponent instanceof SourcePollingChannelAdapterSpec) {
 						throw new BeanCreationException("The 'SourcePollingChannelAdapter' (" + currComponent
 								+ ") " + "must be configured with at least one 'MessageChannel' or 'MessageHandler'.");
 					}
 				}
+				// 通道对象应该被消耗掉 (用于连接一个上游对象和下游对象)
 				else if (currentChannel != null) {
 					throw new BeanCreationException("The 'IntegrationFlow' can't consist of only one 'MessageChannel'. "
 							+ "Add at least '.bridge()' EIP-method before the end of flow.");
 				}
 			}
 
+			// 只有在设置管线的时候才会为true 默认情况可以忽略
 			if (isImplicitChannel()) {
 				Optional<Object> lastComponent =
 						components.keySet()

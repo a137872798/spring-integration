@@ -198,7 +198,9 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		}
 	}
 
-
+	/**
+	 * 初始化 adapter
+	 */
 	@Override
 	protected void onInit() {
 		Assert.notNull(this.source, "source must not be null");
@@ -223,6 +225,10 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		return this.outputChannel;
 	}
 
+	/**
+	 * 从messageSource拉取到message后 进行处理
+	 * @param messageArg
+	 */
 	@Override
 	protected void handleMessage(Message<?> messageArg) {
 		Message<?> message = messageArg;
@@ -231,6 +237,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint
 		}
 		AcknowledgmentCallback ackCallback = StaticMessageHeaderAccessor.getAcknowledgmentCallback(message);
 		try {
+			// 将消息发送到下游
 			this.messagingTemplate.send(getOutputChannel(), message);
 			AckUtils.autoAck(ackCallback);
 		}
