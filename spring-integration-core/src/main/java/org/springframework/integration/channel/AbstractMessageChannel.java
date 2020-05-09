@@ -62,6 +62,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  * @author Artem Bilan
+ * 消息管道基类
  */
 @IntegrationManagedResource
 @SuppressWarnings("deprecation")

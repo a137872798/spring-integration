@@ -151,6 +151,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 		while (!success && handlerIterator.hasNext()) {
 			MessageHandler handler = handlerIterator.next();
 			try {
+				// 内部的异常最终会被dispatcher 捕获
 				handler.handleMessage(message);
 				success = true; // we have a winner.
 			}
